@@ -26,10 +26,11 @@
       left: 50%;
       transform: translate(-50%, -50%);
       color: #9babc4;
-      font-size: 16px;
+      font-size: 15px;
       text-align: center;
       z-index: 10;
-      line-height: 1.6;
+      line-height: 1.7;
+      max-width: 90%;
     }
     canvas {
       display: block;
@@ -39,37 +40,53 @@
   </style>
 </head>
 <body>
-  <div id="status">載入中...</div>
+  <div id="status">載入 Phaser 中...</div>
   <div id="game-container"></div>
 
-  <!-- 先載入 Phaser -->
-  <script src="https://cdn.jsdelivr.net/npm/[email protected]/dist/phaser.min.js"></script>
   <script>
-    // 檢查 Phaser 是否載入成功
-    if (typeof Phaser === "undefined") {
-      document.getElementById("status").innerHTML =
-        "Phaser 載入失敗<br><br>請確認網路連線正常<br>或改用「Live Server / 本地伺服器」開啟";
-    } else {
-      // Phaser 成功後再依序載入遊戲腳本
-      function loadScript(src) {
-        return new Promise(function (resolve, reject) {
-          var s = document.createElement("script");
-          s.src = src;
-          s.onload = resolve;
-          s.onerror = function () { reject(new Error(src + " 載入失敗")); };
-          document.body.appendChild(s);
-        });
-      }
+    var statusEl = document.getElementById("status");
 
-      loadScript("js/data.js")
-        .then(function () { return loadScript("js/game.js"); })
-        .then(function () {
-          document.getElementById("status").style.display = "none";
-        })
-        .catch(function (err) {
-          document.getElementById("status").innerHTML = err.message;
-        });
+    function showError(msg) {
+      statusEl.innerHTML = msg;
+      statusEl.style.color = "#ff7a7f";
     }
+
+    function loadScript(src) {
+      return new Promise(function (resolve, reject) {
+        var s = document.createElement("script");
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = function () {
+          reject(new Error("無法載入：" + src));
+        };
+        document.head.appendChild(s);
+      });
+    }
+
+    // 依序載入：Phaser → data.js → game.js
+    loadScript("https://cdnjs.cloudflare.com/ajax/libs/phaser/3.87.0/phaser.min.js")
+      .catch(function () {
+        // 備用 CDN
+        return loadScript("https://cdn.jsdelivr.net/npm/phaser@3.87.0/dist/phaser.min.js");
+      })
+      .then(function () {
+        if (typeof Phaser === "undefined") {
+          throw new Error("Phaser 載入後仍無法使用");
+        }
+        statusEl.innerHTML = "載入遊戲資料中...";
+        return loadScript("js/data.js");
+      })
+      .then(function () {
+        statusEl.innerHTML = "載入遊戲中...";
+        return loadScript("js/game.js");
+      })
+      .then(function () {
+        statusEl.style.display = "none";
+      })
+      .catch(function (err) {
+        showError("載入失敗<br><br>" + err.message + "<br><br>請重新整理或檢查網路");
+        console.error(err);
+      });
   </script>
 </body>
 </html>

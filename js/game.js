@@ -10,7 +10,10 @@ class BootScene extends Phaser.Scene {
   }
 
   preload() {
-    // 載入怪物圖片
+    // 載入怪物圖片，失敗也不卡住
+    this.load.on("loaderror", function (file) {
+      console.warn("圖片載入失敗:", file.src);
+    });
     MONSTERS.forEach(m => {
       this.load.image(m.id, m.img);
     });
@@ -471,7 +474,21 @@ const config = {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH
   },
-  scene: [BootScene, MenuScene, SelectScene, BattleScene, CollectionScene]
+  scene: [BootScene, MenuScene, SelectScene, BattleScene, CollectionScene],
+  dom: {
+    createContainer: true
+  }
 };
 
-const game = new Phaser.Game(config);
+try {
+  const game = new Phaser.Game(config);
+  console.log("Game started successfully");
+} catch (e) {
+  console.error("Game start failed:", e);
+  var el = document.getElementById("status");
+  if (el) {
+    el.style.display = "block";
+    el.style.color = "#ff7a7f";
+    el.innerHTML = "遊戲啟動失敗<br>" + e.message;
+  }
+}
