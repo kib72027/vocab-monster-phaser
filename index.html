@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Reading Plus 單字打怪王 (Phaser)</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #0D1626;
+      overflow: hidden;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+    }
+    #game-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #status {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #9babc4;
+      font-size: 16px;
+      text-align: center;
+      z-index: 10;
+      line-height: 1.6;
+    }
+    canvas {
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="status">載入中...</div>
+  <div id="game-container"></div>
+
+  <!-- 先載入 Phaser -->
+  <script src="https://cdn.jsdelivr.net/npm/[email protected]/dist/phaser.min.js"></script>
+  <script>
+    // 檢查 Phaser 是否載入成功
+    if (typeof Phaser === "undefined") {
+      document.getElementById("status").innerHTML =
+        "Phaser 載入失敗<br><br>請確認網路連線正常<br>或改用「Live Server / 本地伺服器」開啟";
+    } else {
+      // Phaser 成功後再依序載入遊戲腳本
+      function loadScript(src) {
+        return new Promise(function (resolve, reject) {
+          var s = document.createElement("script");
+          s.src = src;
+          s.onload = resolve;
+          s.onerror = function () { reject(new Error(src + " 載入失敗")); };
+          document.body.appendChild(s);
+        });
+      }
+
+      loadScript("js/data.js")
+        .then(function () { return loadScript("js/game.js"); })
+        .then(function () {
+          document.getElementById("status").style.display = "none";
+        })
+        .catch(function (err) {
+          document.getElementById("status").innerHTML = err.message;
+        });
+    }
+  </script>
+</body>
+</html>
